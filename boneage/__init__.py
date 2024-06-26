@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from flask import Flask, Blueprint
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -10,10 +11,10 @@ import config
 db = SQLAlchemy()
 migrate = Migrate()
 
-STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
-TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+STATIC_DIR = str(Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")).as_posix())
+TEMPLATE_DIR = str(Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")).as_posix())
 
-UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
+UPLOAD_DIR = str(Path(os.path.join(STATIC_DIR, "uploads")).as_posix())
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 

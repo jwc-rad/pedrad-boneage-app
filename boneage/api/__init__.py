@@ -47,7 +47,7 @@ def predict():
 
         preds = {
             'preds': ty.tolist(), 'gender': gender, 
-            'image': mx.tolist(),
+            # 'image': mx.tolist(),
         }
         predict_datetime = datetime.now()
 

@@ -1,4 +1,5 @@
 import glob, io, json, os, random, string
+from pathlib import Path
 from datetime import datetime
 import numpy as np
 import pandas as pd
@@ -44,11 +45,11 @@ def ba():
 
     ref_images = {}
     ref_images["F"] = [
-        x.split(STATIC_DIR)[1]
+        str(Path(x).as_posix()).split(STATIC_DIR)[1]
         for x in sorted(glob.glob(os.path.join(STATIC_DIR, "images/hand/F", "*.png")))
     ]
     ref_images["M"] = [
-        x.split(STATIC_DIR)[1]
+        str(Path(x).as_posix()).split(STATIC_DIR)[1]
         for x in sorted(glob.glob(os.path.join(STATIC_DIR, "images/hand/M", "*.png")))
     ]
 
@@ -131,9 +132,8 @@ def delete_all_record():
     
     for qi in qs:
         try:
-            #db.session.delete(qi)
-            #db.session.commit()
-            pass
+            db.session.delete(qi)
+            db.session.commit()
         except Exception as e:
             db.session.rollback()
             print(f"Error deleting record: {e}")
