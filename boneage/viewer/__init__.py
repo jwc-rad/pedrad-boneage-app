@@ -140,7 +140,7 @@ def delete_all_record():
     
     qs = BoneAge.query.all()
     
-    return jsonify({"message": f"Records deleted successfully ... {len(qs)} records present"}), 200
+    return jsonify({"message": f"Records deleted successfully ... {len(qs)} records present", "num_records": len(qs)}), 200
 
 
 @bp_viewer.route("/toggle_status", methods=["POST"])

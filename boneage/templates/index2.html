@@ -186,7 +186,7 @@
                 if (response.error) {
                   alert(response.error);
                 } else {
-                  alert("All records have been deleted.");
+                  alert("Records deleted successfully ... " + response.num_records + " records present.");
                   table.clear().draw();
                   console.log(response.message);
                 }
