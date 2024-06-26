@@ -1,0 +1,32 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-login = "*"
+flask-sqlalchemy = "*"
+numpy = "==1.26.4"
+matplotlib = "*"
+seaborn = "*"
+opencv-python = "*"
+pillow = "*"
+scipy = "*"
+scikit-learn = "*"
+scikit-image = "*"
+pydicom = "*"
+pandas = "*"
+torch = "==2.2.2"
+torchvision = "==0.17.2"
+torchaudio = "==2.2.2"
+flask-migrate = "*"
+requests = "*"
+onnx = "*"
+onnxruntime = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
+python_full_version = "3.9.13"
