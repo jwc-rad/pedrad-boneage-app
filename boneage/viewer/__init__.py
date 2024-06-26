@@ -45,11 +45,11 @@ def ba():
 
     ref_images = {}
     ref_images["F"] = [
-        str(Path(x).as_posix()).split(STATIC_DIR)[1]
+        str(Path(x).as_posix()).split(STATIC_DIR)[1].lstrip('/')
         for x in sorted(glob.glob(os.path.join(STATIC_DIR, "images/hand/F", "*.png")))
     ]
     ref_images["M"] = [
-        str(Path(x).as_posix()).split(STATIC_DIR)[1]
+        str(Path(x).as_posix()).split(STATIC_DIR)[1].lstrip('/')
         for x in sorted(glob.glob(os.path.join(STATIC_DIR, "images/hand/M", "*.png")))
     ]
 
@@ -69,7 +69,7 @@ def parse_boneage_data(qi):
     idata["CreateDateTime"] = create_datetime
 
     path_image = getattr(qi, "path_image")
-    path_image = path_image.split(STATIC_DIR)[1].lstrip(os.sep)
+    path_image = path_image.split(STATIC_DIR)[1].lstrip('/')
     idata["path_image"] = path_image
 
     bfem = idata["Gender"] == "F"
