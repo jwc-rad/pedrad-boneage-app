@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Flask Dynamic Navigation</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css') }}"
+    />
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script
+      type="text/javascript"
+      charset="utf8"
+      src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"
+    ></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    {#
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    #}
+  </head>
+
+  <body>
+    <div id="wrap">
+      <header></header>
+      <div id="container">
+        <nav>
+          <table id="menuTable" class="display">
+            <thead>
+              <tr>
+                <th>Action</th>
+                {% for dcol in dcols %}
+                <th>{{ dcol }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tfoot>
+              <tr>
+                <th>Action</th>
+                {% for dcol in dcols %}
+                <th>{{ dcol }}</th>
+                {% endfor %}
+              </tr>
+            </tfoot>
+            <tbody>
+              {% for row in data %}
+              <tr class="query-row" data-id="{{ row['ID'] }}">
+                <td class="text-align-center">
+                  <button class="delete-btn" data-id="{{ row['ID'] }}">
+                    Delete
+                  </button>
+                </td>
+                {% for k, v in row.items() %} {% if k in dcols %}
+                <td>
+                  {% if k == 'Status' %}
+                  <button class="status-btn" data-id="{{ row['ID'] }}">
+                    {{ row['Status'] }}
+                  </button>
+                  {% else %} {{ v }} {% endif %}
+                </td>
+                {% endif %} {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </nav>
+        <div class="main-container">
+          <section id="content-section" class="content">
+            <div id="query-section" class="content-container">
+              <img
+                id="query-image"
+                class="image-fit-height"
+                src=""
+                alt="Query Image"
+              />
+            </div>
+            <div id="ref-section" class="content-container">
+              {% for x in ref_images['M'] %}
+              <img
+                src="{{ url_for('static', filename=x) }}"
+                alt="F ref image"
+                class="image-fit-height ref-image"
+                id="ref-image-M-{{ loop.index0 }}"
+              />
+              {% endfor %} {% for x in ref_images['F'] %}
+              <img
+                src="{{ url_for('static', filename=x) }}"
+                alt="F ref image"
+                class="image-fit-height ref-image"
+                id="ref-image-F-{{ loop.index0 }}"
+              />
+              {% endfor %}
+            </div>
+          </section>
+          <aside id="aside-section" class="aside">
+            <div id="aside-text" class="aside-header">
+              <p id="label-text-to-copy" class="text-line-break"></p>
+            </div>
+            <div id="aside-chart" class="aside-content">
+              <div id="bar-chart"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <footer></footer>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        let allLabelTexts = [];
+        let chronologicAgeMonths = 0;
+        let thisGender = "";
+        let thisRefIndex = -1;
+
+        // DataTable
+        var table = $("#menuTable").DataTable({
+          paging: true,
+          info: false,
+          dom: "lrtip", // l - length changing input control, f - filtering input, r - processing display element, t - table, i - information summary, p - pagination control
+          lengthMenu: [1, 3, 5, 10], // Define options for rows per page
+          pageLength: 5,
+        });
+
+        // Setup - add a text input to each footer cell
+        $("#menuTable tfoot th").each(function () {
+          var title = $(this).text();
+          if (title == "Action") {
+            $(this).html(
+              '<button id="delete-all-btn" class="btn btn-danger"' +
+                ">Delete All</button>"
+            );
+          } else {
+            $(this).html(
+              '<input type="text" class="input-search" placeholder="Search ' +
+                title +
+                '" />'
+            );
+          }
+
+          // Defaults
+          if (title == "Status") {
+            $("input", this).val("Wait");
+          }
+        });
+
+        // Apply the search
+        table.columns().every(function (index) {
+          var column = this;
+
+          // Run initial search based on the values of the input fields
+          var input = $("input", column.footer());
+
+          if (input.val()) {
+            column.search(input.val()).draw();
+          }
+
+          // Apply triggers
+          $("input", this.footer()).on("keyup change clear", function () {
+            if (column.search() !== this.value) {
+              column.search(this.value).draw();
+            }
+          });
+        });
+
+        // Clear all contents when data record is removed
+        function clearContents() {
+          $("img.selected-ref-image").removeClass("selected-ref-image");
+          $("#query-image").attr("src", "");
+          $("#label-text-to-copy").text("");
+          Plotly.purge("bar-chart");
+        }
+
+        // Delete All button click event
+        $("#menuTable").on("click", "#delete-all-btn", function (event) {
+          if (confirm("Are you sure you want to delete all records?")) {
+            // Add your AJAX call to delete the record
+            $.ajax({
+              url: "{{ url_for('viewer.delete_all_record') }}", // Replace with your delete URL
+              method: "POST",
+              contentType: "application/json",
+              success: function (response) {
+                if (response.error) {
+                  alert(response.error);
+                } else {
+                  alert("All records have been deleted.");
+                  table.clear().draw();
+                  console.log(response.message);
+                }
+              },
+              error: function (error) {
+                console.log(error);
+              },
+            });
+          }
+        });
+
+        // Delete button click event
+        $("#menuTable tbody").on("click", ".delete-btn", function (event) {
+          event.stopPropagation(); // Prevent the row click event
+          var button = $(this);
+          var menuId = button.data("id");
+
+          // Add your AJAX call to delete the record
+          $.ajax({
+            url: "{{ url_for('viewer.delete_record') }}", // Replace with your delete URL
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ query_id: menuId }),
+            success: function (response) {
+              if (response.error) {
+                alert(response.error);
+              } else {
+                // Remove the row from the table
+                table.row(button.closest("tr")).remove().draw(false);
+
+                // Clear all contents
+                clearContents();
+              }
+            },
+            error: function (error) {
+              console.log(error);
+            },
+          });
+        });
+
+        // Status button click event
+        $("#menuTable tbody").on("click", ".status-btn", function (event) {
+          event.stopPropagation(); // Prevent the row click event
+          var button = $(this);
+          var menuId = button.data("id");
+
+          // Add your AJAX call to change status of the record
+          $.ajax({
+            url: "{{ url_for('viewer.toggle_status') }}", // Replace with your delete URL
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ query_id: menuId }),
+            success: function (response) {
+              if (response.error) {
+                alert(response.error);
+              } else {
+                // Get the row node
+                var rowNode = button.closest("tr");
+
+                // Update the HTML content in the DataTable
+                var cellIndex = table.cell(button.closest("td")).index(); // Get the index of the cell containing the button
+                var cellData = table
+                  .cell(cellIndex.row, cellIndex.column)
+                  .data(); // Get current cell data
+
+                var $cellContent = $("<div>").html(cellData); // Wrap cellData in a div to ensure proper manipulation
+                $cellContent.find("button").text(response.new_status); // Update the button text in the cloned data
+
+                // Set the updated cell data back to the DataTable
+                table
+                  .cell(cellIndex.row, cellIndex.column)
+                  .data($cellContent.html())
+                  .draw(false);
+              }
+            },
+            error: function (error) {
+              console.log(error);
+            },
+          });
+        });
+
+        // Make table rows clickable and load content via AJAX
+        $("#menuTable tbody").on("click", ".query-row", function () {
+          var menuId = $(this).data("id");
+
+          // Remove highlight from all rows and highlight the clicked row
+          table.$("tr.selected-row").removeClass("selected-row");
+          $(this).addClass("selected-row");
+
+          updateContent(menuId);
+        });
+
+        // table_row click events
+        function updateChart(data) {
+          var trace = {
+            y: data["xlabels"].map(String),
+            x: data["predictions"],
+            type: "bar",
+            orientation: "h",
+          };
+          var layout = {
+            yaxis: {
+              title: "Years",
+              type: "category",
+              ticks: "outside",
+              side: "right",
+            },
+            xaxis: {
+              title: "Prediction",
+              autorange: "reversed",
+            },
+            autosize: true,
+            margin: {
+              l: 0,
+            },
+          };
+          var config = { responsive: true };
+          Plotly.newPlot("bar-chart", [trace], layout, config);
+        }
+
+        function updateImage(data) {
+          var fileName = data["path_image"];
+          var imagePath =
+            "{{ url_for('static', filename='DUMMYFILENAME') }}".replace(
+              "DUMMYFILENAME",
+              fileName
+            );
+          $("#query-image").attr("src", imagePath);
+        }
+
+        function updateAsideText(data) {
+          var bestIndex = data["best_pred"];
+          var allPreds = data["predictions"];
+          var thisPred = allPreds[bestIndex];
+          var textToCopy = allLabelTexts[bestIndex];
+          textToCopy +=
+            "\nChronological age : " +
+            chronologicAgeMonths.toFixed() +
+            " Months.";
+
+          // Copy text to clipboard
+          navigator.clipboard.writeText(textToCopy).then(
+            function () {
+              // Update the text container
+              var displayText = textToCopy;
+              displayText +=
+                "\n(" + parseFloat((100 * thisPred).toFixed(2)) + "%)";
+              $("#label-text-to-copy").text(displayText);
+            },
+            function (err) {
+              alert("Could not copy text");
+              console.error("Could not copy text: ", err);
+            }
+          );
+        }
+
+        function updateReference(ind) {
+          var referenceId = "ref-image-" + thisGender + "-" + ind.toString();
+
+          $("img.selected-ref-image").removeClass("selected-ref-image");
+          $("img#" + referenceId).addClass("selected-ref-image");
+        }
+
+        function updateContent(menuId) {
+          $.ajax({
+            url: "{{ url_for('viewer.get_data') }}",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ query_id: menuId }),
+            success: function (response) {
+              if (response.error) {
+                alert(response.error);
+              } else {
+                var data = response.data;
+                allLabelTexts = data["alllabeltext"];
+                chronologicAgeMonths = parseInt(12 * data["Age"]);
+                thisGender = data["Gender"];
+                thisRefIndex = data["best_pred"];
+                updateChart(data);
+                updateImage(data);
+                updateAsideText(data);
+                updateReference(thisRefIndex);
+              }
+            },
+            error: function (error) {
+              console.log(error);
+            },
+          });
+        }
+
+        // Event listener for clicking on a bar in the chart
+        $("#bar-chart").on("plotly_click", function (_, data) {
+          var pointIndex = data.points[0].pointIndex;
+          var textToCopy = allLabelTexts[pointIndex];
+          textToCopy +=
+            "\nChronological age : " +
+            chronologicAgeMonths.toFixed() +
+            " Months.";
+          var pointValue = data.points[0].x;
+
+          // Copy text to clipboard
+          navigator.clipboard.writeText(textToCopy).then(
+            function () {
+              // Update the text container
+              var displayText = textToCopy;
+              displayText +=
+                "\n(" + parseFloat((100 * pointValue).toFixed(2)) + "%)";
+              $("#label-text-to-copy").text(displayText);
+            },
+            function (err) {
+              alert("Could not copy text");
+              console.error("Could not copy text: ", err);
+            }
+          );
+
+          // Display ref image
+          updateReference(pointIndex);
+
+          // Update opacity of bars
+          var updateOpacity = Array(data.points[0].data.x.length).fill(0.5);
+          updateOpacity[pointIndex] = 1;
+          var updateStyle = {
+            marker: { opacity: updateOpacity },
+          };
+          Plotly.restyle("bar-chart", updateStyle);
+        });
+      });
+    </script>
+  </body>
+</html>

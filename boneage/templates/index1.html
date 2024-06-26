@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Flask Dynamic Navigation</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script
+      type="text/javascript"
+      charset="utf8"
+      src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"
+    ></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      nav {
+        margin-bottom: 20px;
+      }
+
+      #menuTable {
+        width: 100%;
+      }
+
+      #menuTable thead {
+        background-color: #f2f2f2;
+      }
+      #menuTable tfoot {
+        display: table-header-group;
+      }
+      #menuTable tbody tr {
+        cursor: pointer; /* Change cursor to pointer on table rows */
+      }
+      .selected-row td {
+        background-color: #c9dbff !important; /* Highlight color */
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav>
+      <table id="menuTable" class="display">
+        <thead>
+          <tr>
+            {% for dcol in dcols %}
+            <th>{{ dcol }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            {% for dcol in dcols %}
+            <th>{{ dcol }}</th>
+            {% endfor %}
+          </tr>
+        </tfoot>
+        <tbody>
+          {% for row in data %}
+          <tr data-id="{{ row['ID'] }}">
+            {% for k, v in row.items() %} {% if k in dcols %}
+            <td>{{ v }}</td>
+            {% endif %} {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </nav>
+    <div id="contentPlaceholder">
+      <p>{{ content }}</p>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // Setup - add a text input to each footer cell
+        $("#menuTable tfoot th").each(function () {
+          var title = $(this).text();
+          $(this).html(
+            '<input type="text" placeholder="Search ' + title + '" />'
+          );
+        });
+
+        // DataTable
+        var table = $("#menuTable").DataTable({
+          paging: true,
+          info: false,
+          dom: "lrtip", // l - length changing input control, f - filtering input, r - processing display element, t - table, i - information summary, p - pagination control
+          lengthMenu: [1, 3, 5, 10], // Define options for rows per page
+          pageLength: 5,
+        });
+
+        // Apply the search
+        table.columns().every(function () {
+          var that = this;
+          $("input", this.footer()).on("keyup change clear", function () {
+            if (that.search() !== this.value) {
+              that.search(this.value).draw();
+            }
+          });
+        });
+
+        // Make table rows clickable and load content via AJAX
+        $("#menuTable tbody").on("click", "tr", function () {
+          var menuId = $(this).data("id");
+
+          // Remove highlight from all rows and highlight the clicked row
+          $("#menuTable tbody tr").removeClass("selected-row");
+          $(this).addClass("selected-row");
+
+          $.ajax({
+            url: "{{ url_for('viewer.show_q') }}",
+            method: "GET",
+            data: { menu_id: menuId },
+            success: function (response) {
+              $("#contentPlaceholder").html(response);
+            },
+            error: function (xhr, status, error) {
+              console.error("Error fetching content:", error);
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

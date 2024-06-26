@@ -1,0 +1,162 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  width: auto;
+}
+
+#wrap {
+  /* min-height: 100%; */
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+}
+
+header {
+  /* height: 4em; */
+  background: #ddd;
+  /* position: relative; */
+  /* z-index: 1; */
+  width: auto;
+}
+#container {
+  /* min-height: 100%; */
+  /* margin: -4em 0 -2em; */
+  width: auto;
+  display: grid;
+  /* grid-template-rows: 25% 75%; */
+  grid-template-rows: auto 1fr;
+}
+footer {
+  /* height: 4em; */
+  background: #ddd;
+}
+
+nav {
+  height: 20vh;
+  font-size: small;
+  overflow: auto;
+}
+
+#menuTable {
+  height: 100%;
+  width: 100%;
+  table-layout: fixed;
+}
+#menuTable thead {
+  background-color: #f2f2f2;
+}
+#menuTable thead th {
+  text-align: center;
+  padding: 1px 0;
+}
+#menuTable tfoot {
+  display: table-header-group;
+}
+#menuTable tfoot th {
+  text-align: center;
+  padding: 1px 0;
+}
+#menuTable tfoot th input.input-search {
+  box-sizing: border-box;
+  width: calc(100% - 4px);
+  margin: 2px;
+  /* display: none; */
+}
+#menuTable tbody tr {
+  cursor: pointer; /* Change cursor to pointer on table rows */
+}
+#menuTable tbody td {
+  padding: 1px 1px;
+}
+.selected-row td {
+  background-color: #c9dbff !important; /* Highlight color */
+}
+
+.main-container {
+  display: flex;
+  flex-direction: row;
+  /* background: #000000; */
+}
+
+.content {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+
+  /* height: 100%; */
+  height: 80vh;
+  /* border-right: 1px solid #ccc; */
+}
+.aside {
+  flex: 1;
+  /* padding: 1em; */
+}
+
+.content-container {
+  flex: 1;
+  /* display: none; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  /* padding: 1em; */
+  border-bottom: 1px solid #ccc;
+}
+
+.content-container:last-child {
+  border-bottom: none;
+}
+
+@media (min-aspect-ratio: 4/3) {
+  nav {
+    height: 25vh;
+  }
+
+  .content {
+    height: 75vh;
+    flex-direction: row;
+  }
+  .content-container {
+    border-bottom: none;
+    border-right: 1px solid #ccc;
+  }
+  .content-container:last-child {
+    border-right: none;
+  }
+}
+
+.content-container img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.ref-image {
+  display: none;
+}
+
+.selected-ref-image {
+  display: inline-block;
+}
+
+.aside-header {
+  /* border-bottom: 1px solid #ccc; */
+}
+.aside-content {
+  /* padding: 1em; */
+}
+#bar-chart {
+  height: 60vh;
+  /* display: none; */
+}
+
+.text-line-break {
+  white-space: pre-wrap;
+}
+.text-align-center {
+  text-align: center;
+}
+
+img[src=""] {
+  display: none;
+}

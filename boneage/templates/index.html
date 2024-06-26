@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sortable and Filterable Table</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="mt-5">Sortable and Filterable Table</h1>
+      <table class="table table-bordered mt-3" id="sortable-table">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)">Name</th>
+            <th onclick="sortTable(1)">Age</th>
+            <th onclick="sortTable(2)">City</th>
+          </tr>
+          <tr>
+            <th>
+              <select id="name-filter" onchange="filterTable()">
+                <option value="">All</option>
+              </select>
+            </th>
+            <th>
+              <select id="age-filter" onchange="filterTable()">
+                <option value="">All</option>
+              </select>
+            </th>
+            <th>
+              <select id="city-filter" onchange="filterTable()">
+                <option value="">All</option>
+              </select>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data %}
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.age }}</td>
+            <td>{{ row.city }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <script src="{{ url_for('static', filename='js/table.js') }}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", (event) => {
+        populateFilters();
+      });
+
+      function populateFilters() {
+        const table = document.getElementById("sortable-table");
+        const rows = Array.from(table.rows).slice(1);
+        const nameFilter = document.getElementById("name-filter");
+        const ageFilter = document.getElementById("age-filter");
+        const cityFilter = document.getElementById("city-filter");
+
+        const names = new Set();
+        const ages = new Set();
+        const cities = new Set();
+
+        rows.forEach((row) => {
+          names.add(row.cells[0].innerText);
+          ages.add(row.cells[1].innerText);
+          cities.add(row.cells[2].innerText);
+        });
+
+        names.forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.text = name;
+          nameFilter.add(option);
+        });
+
+        ages.forEach((age) => {
+          const option = document.createElement("option");
+          option.value = age;
+          option.text = age;
+          ageFilter.add(option);
+        });
+
+        cities.forEach((city) => {
+          const option = document.createElement("option");
+          option.value = city;
+          option.text = city;
+          cityFilter.add(option);
+        });
+      }
+    </script>
+  </body>
+</html>

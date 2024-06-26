@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sortable and Filterable Table</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1 class="mt-5">Sortable and Filterable Table</h1>
+      <table class="table table-bordered mt-3" id="sortable-table">
+        <thead>
+          <tr>
+            {% for dcol in dcols %} {% if dcol == "Gender" %}
+            <th>
+              <select
+                id="gender-filter"
+                class="form-control"
+                onchange="filterTable()"
+              >
+                <option value="">All</option>
+              </select>
+            </th>
+            {% else %}
+            <th></th>
+            {% endif %} {% endfor %}
+          </tr>
+          <tr>
+            {% for dcol in dcols %}
+            <th onclick="sortTable('{{ loop.index0 }}')">{{ dcol }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data %}
+          <tr>
+            {% for k, v in row.items() %} {% if k in dcols %}
+            <td>{{ v }}</td>
+            {% endif %} {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <script src="{{ url_for('static', filename='js/ba_table.js') }}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", (event) => {
+        populateGenderFilter();
+      });
+
+      function populateGenderFilter() {
+        const table = document.getElementById("sortable-table");
+        const rows = Array.from(table.rows).slice(2); // Skip header and filter rows
+        const genderFilter = document.getElementById("gender-filter");
+
+        const genders = new Set();
+
+        rows.forEach((row) => {
+          genders.add(row.cells[1].innerText);
+        });
+
+        genders.forEach((gender) => {
+          const option = document.createElement("option");
+          option.value = gender;
+          option.text = gender;
+          genderFilter.add(option);
+        });
+      }
+    </script>
+  </body>
+</html>

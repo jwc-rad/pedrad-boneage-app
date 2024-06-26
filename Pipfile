@@ -24,6 +24,8 @@ flask-migrate = "*"
 requests = "*"
 onnx = "*"
 onnxruntime = "*"
+monai = "*"
+plotly = "*"
 
 [dev-packages]
 
