@@ -32,7 +32,6 @@
           <table id="menuTable" class="display">
             <thead>
               <tr>
-                <th>Action</th>
                 {% for dcol in dcols %}
                 <th>{{ dcol }}</th>
                 {% endfor %}
@@ -40,7 +39,6 @@
             </thead>
             <tfoot>
               <tr>
-                <th>Action</th>
                 {% for dcol in dcols %}
                 <th>{{ dcol }}</th>
                 {% endfor %}
@@ -49,20 +47,9 @@
             <tbody>
               {% for row in data %}
               <tr class="query-row" data-id="{{ row['ID'] }}">
-                <td class="text-align-center">
-                  <button class="delete-btn" data-id="{{ row['ID'] }}">
-                    Delete
-                  </button>
-                </td>
-                {% for k, v in row.items() %} {% if k in dcols %}
-                <td>
-                  {% if k == 'Status' %}
-                  <button class="status-btn" data-id="{{ row['ID'] }}">
-                    {{ row['Status'] }}
-                  </button>
-                  {% else %} {{ v }} {% endif %}
-                </td>
-                {% endif %} {% endfor %}
+                {% for k, v in row.items() %}
+                <td>{{ v }}</td>
+                {% endfor %}
               </tr>
               {% endfor %}
             </tbody>
@@ -117,21 +104,40 @@
         let thisRefIndex = -1;
 
         // DataTable
-        https: var table = $("#menuTable").DataTable({
+        var table = $("#menuTable").DataTable({
           paging: true,
           info: false,
           dom: "lrtip", // l - length changing input control, f - filtering input, r - processing display element, t - table, i - information summary, p - pagination control
           lengthMenu: [1, 3, 5, 10], // Define options for rows per page
           pageLength: 5,
+          columns: [
+            { data: 'ID', visible: false }, // ID column (not visible)
+            { data: 'Action', orderable: false, searchable: false },
+            { data: "PatientID" },
+            { data: "Gender" },
+            { data: "Age" },
+            { data: "StudyDateTime" },
+            { data: "CreateDateTime" },
+            { data: "Status" }, // Orderable and searchable by default
+          ],
+          createdRow: function (row, data, dataIndex) {
+            // Add buttons to the 'Action' and 'Status' columns
+            $("td:eq(0)", row).html(
+              `<button class="delete-btn" data-id="${data.ID}">Delete</button>`
+            );
+            $("td:eq(6)", row).html(
+              `<button class="status-btn" data-id="${data.ID}">${data.Status}</button>`
+            );
+          },
         });
 
-        // Setup - add a text input to each footer cell
+        // Setup - add buttons in Action column, and text input to each footer cell
         $("#menuTable tfoot th").each(function () {
           var title = $(this).text();
           if (title == "Action") {
             $(this).html(
-              '<button id="delete-all-btn" class="btn btn-danger"' +
-                ">Delete All</button>"
+              '<button id="delete-all-btn" class="btn btn-danger">Delete All</button>' 
+              + '<button id="reload-data-btn" class="btn btn-primary">Reload</button>'
             );
           } else {
             $(this).html(
@@ -202,6 +208,25 @@
           }
         });
 
+        // Reload Data button click event
+        $("#menuTable").on("click", "#reload-data-btn", function (event) {
+          $.ajax({
+            url: "{{ url_for('viewer.reload_data') }}", // Replace with your reload URL
+            method: "GET",
+            contentType: "application/json",
+            success: function (response) {
+              if (response.error) {
+                alert(response.error);
+              } else {
+                table.clear().rows.add(response.data).draw();
+              }
+            },
+            error: function (error) {
+              console.log(error);
+            },
+          });
+        });
+
         // Delete button click event
         $("#menuTable tbody").on("click", ".delete-btn", function (event) {
           event.stopPropagation(); // Prevent the row click event
@@ -247,23 +272,25 @@
               if (response.error) {
                 alert(response.error);
               } else {
-                // Get the row node
-                var rowNode = button.closest("tr");
-
                 // Update the HTML content in the DataTable
                 var cellIndex = table.cell(button.closest("td")).index(); // Get the index of the cell containing the button
                 var cellData = table
                   .cell(cellIndex.row, cellIndex.column)
                   .data(); // Get current cell data
 
-                var $cellContent = $("<div>").html(cellData); // Wrap cellData in a div to ensure proper manipulation
-                $cellContent.find("button").text(response.new_status); // Update the button text in the cloned data
+                console.log(cellData);
+
+                //$("td:eq(6)", row).html(
+                //`<button class="status-btn" data-id="${data.ID}">${data.Status}</button>`)
+
+                //var $cellContent = $("<div>").html(cellData); // Wrap cellData in a div to ensure proper manipulation
+                //$cellContent.find("button").text(response.new_status); // Update the button text in the cloned data
 
                 // Set the updated cell data back to the DataTable
-                table
+                {# table
                   .cell(cellIndex.row, cellIndex.column)
-                  .data($cellContent.html())
-                  .draw(false);
+                  .data(response.new_status)
+                  .draw(false); #}
               }
             },
             error: function (error) {

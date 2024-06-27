@@ -19,9 +19,11 @@ bp_viewer = Blueprint(
     static_folder=STATIC_DIR,
 )
 
+
 def parse_boneage_query(q):
     dfdata = {}
     dfdata["ID"] = getattr(q, "id")
+    dfdata["Action"] = ""
     dfdata["PatientID"] = getattr(q, "pid")
     dfdata["Gender"] = getattr(q, "gender")
     dfdata["Age"] = getattr(q, "age")
@@ -31,29 +33,43 @@ def parse_boneage_query(q):
     create_datetime = getattr(q, "create_date")
     create_datetime = create_datetime.strftime("%Y-%m-%d %H:%M:%S")
     dfdata["CreateDateTime"] = create_datetime
-    dfdata["path_image"] = getattr(q, "path_image")
+    # dfdata["path_image"] = getattr(q, "path_image")
     dfdata["Status"] = getattr(q, "status")
     return dfdata
+
 
 @bp_viewer.route("/")
 def ba():
     qs = BoneAge.query.all()
 
     data = [parse_boneage_query(q) for q in qs]
-        
-    dcols = ["PatientID", "Gender", "Age", "StudyDateTime", "CreateDateTime", "Status"]
+
+    dcols = list(data[0].keys())
 
     ref_images = {}
     ref_images["F"] = [
-        str(Path(x).as_posix()).split(STATIC_DIR)[1].lstrip('/')
+        str(Path(x).as_posix()).split(STATIC_DIR)[1].lstrip("/")
         for x in sorted(glob.glob(os.path.join(STATIC_DIR, "images/hand/F", "*.png")))
     ]
     ref_images["M"] = [
-        str(Path(x).as_posix()).split(STATIC_DIR)[1].lstrip('/')
+        str(Path(x).as_posix()).split(STATIC_DIR)[1].lstrip("/")
         for x in sorted(glob.glob(os.path.join(STATIC_DIR, "images/hand/M", "*.png")))
     ]
 
     return render_template("index2.html", data=data, dcols=dcols, ref_images=ref_images)
+
+
+@bp_viewer.route("/reload_data", methods=["GET"])
+def reload_data():
+    try:
+        qs = BoneAge.query.all()
+
+        data = [parse_boneage_query(q) for q in qs]
+
+        return jsonify({"data": data})
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
 
 def parse_boneage_data(qi):
     idata = {}
@@ -69,7 +85,7 @@ def parse_boneage_data(qi):
     idata["CreateDateTime"] = create_datetime
 
     path_image = getattr(qi, "path_image")
-    path_image = path_image.split(STATIC_DIR)[1].lstrip('/')
+    path_image = path_image.split(STATIC_DIR)[1].lstrip("/")
     idata["path_image"] = path_image
 
     bfem = idata["Gender"] == "F"
@@ -125,11 +141,12 @@ def delete_record():
         db.session.rollback()
         print(f"Error deleting record: {e}")
         return jsonify({"error": str(e)}), 500
-    
+
+
 @bp_viewer.route("/delete_all_record", methods=["POST"])
 def delete_all_record():
     qs = BoneAge.query.all()
-    
+
     for qi in qs:
         try:
             db.session.delete(qi)
@@ -137,10 +154,18 @@ def delete_all_record():
         except Exception as e:
             db.session.rollback()
             print(f"Error deleting record: {e}")
-    
+
     qs = BoneAge.query.all()
-    
-    return jsonify({"message": f"Records deleted successfully ... {len(qs)} records present", "num_records": len(qs)}), 200
+
+    return (
+        jsonify(
+            {
+                "message": f"Records deleted successfully ... {len(qs)} records present",
+                "num_records": len(qs),
+            }
+        ),
+        200,
+    )
 
 
 @bp_viewer.route("/toggle_status", methods=["POST"])
