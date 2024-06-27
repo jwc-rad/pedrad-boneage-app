@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 from PIL import Image
 import pydicom
+from skimage.exposure import equalize_adapthist
 
 import torch
 
@@ -75,6 +76,7 @@ def predict():
         nw = 512
         nh = int(h/w*nw + 0.5)
         thimg = ds.pixel_array / np.max(ds.pixel_array)
+        thimg = equalize_adapthist(thimg)
         thimg = Image.fromarray((255*thimg).astype('uint8'))
         thimg = thimg.resize((nw, nh))
         thname = now_datetime.strftime("%Y%m%d_%H%M%S") + '_' + ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8)) + '.jpg'

@@ -19,6 +19,7 @@ bp_viewer = Blueprint(
     static_folder=STATIC_DIR,
 )
 
+USE_HAND_REF_HE = True
 
 def parse_boneage_query(q=None):
     cols = ["ID", "Action", "PatientID", "Gender", "Age", "StudyDateTime", "CreateDateTime", "Status"]
@@ -43,7 +44,7 @@ def parse_boneage_query(q=None):
 
 
 @bp_viewer.route("/")
-def ba():
+def viewer():
     qs = BoneAge.query.all()
 
     data = [parse_boneage_query(q) for q in qs]
@@ -53,11 +54,11 @@ def ba():
     ref_images = {}
     ref_images["F"] = [
         str(Path(x).as_posix()).split(STATIC_DIR)[1].lstrip("/")
-        for x in sorted(glob.glob(os.path.join(STATIC_DIR, "images/hand/F", "*.png")))
+        for x in sorted(glob.glob(os.path.join(STATIC_DIR, f"images/{'hand_he' if USE_HAND_REF_HE else 'hand'}/F", "*.png")))
     ]
     ref_images["M"] = [
         str(Path(x).as_posix()).split(STATIC_DIR)[1].lstrip("/")
-        for x in sorted(glob.glob(os.path.join(STATIC_DIR, "images/hand/M", "*.png")))
+        for x in sorted(glob.glob(os.path.join(STATIC_DIR, f"images/{'hand_he' if USE_HAND_REF_HE else 'hand'}/M", "*.png")))
     ]
 
     return render_template("index2.html", data=data, dcols=dcols, ref_images=ref_images)

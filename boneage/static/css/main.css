@@ -9,7 +9,7 @@ body {
 #wrap {
   /* min-height: 100%; */
   display: grid;
-  grid-template-rows: 1fr auto 1fr;
+  grid-template-rows: auto 1fr;
 }
 
 header {
@@ -28,11 +28,12 @@ header {
   grid-template-rows: auto 1fr;
 }
 footer {
-  /* height: 4em; */
+  /* height: 3em; */
   background: #ddd;
 }
 
 nav {
+  /* height: calc(20vh - 1em); */
   height: 20vh;
   font-size: small;
   overflow: auto;
@@ -86,6 +87,7 @@ table#menuTable {
   flex-direction: column;
 
   /* height: 100%; */
+  /* height: calc(80vh - 2em); */
   height: 80vh;
   /* border-right: 1px solid #ccc; */
 }
@@ -111,10 +113,12 @@ table#menuTable {
 
 @media (min-aspect-ratio: 4/3) {
   nav {
+    /* height: calc(25vh - 1em); */
     height: 25vh;
   }
 
   .content {
+    /* height: calc(75vh - 2em); */
     height: 75vh;
     flex-direction: row;
   }

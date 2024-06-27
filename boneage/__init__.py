@@ -33,10 +33,8 @@ def create_app():
 
     # Blueprints
     from .api import bp_api
-
     app.register_blueprint(bp_api)
     from .viewer import bp_viewer
-
     app.register_blueprint(bp_viewer)
 
     return app
