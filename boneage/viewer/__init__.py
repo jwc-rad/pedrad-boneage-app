@@ -20,22 +20,26 @@ bp_viewer = Blueprint(
 )
 
 
-def parse_boneage_query(q):
-    dfdata = {}
-    dfdata["ID"] = getattr(q, "id")
-    dfdata["Action"] = ""
-    dfdata["PatientID"] = getattr(q, "pid")
-    dfdata["Gender"] = getattr(q, "gender")
-    dfdata["Age"] = getattr(q, "age")
-    study_datetime = getattr(q, "study_datetime")
-    study_datetime = study_datetime.strftime("%Y-%m-%d %H:%M:%S")
-    dfdata["StudyDateTime"] = study_datetime
-    create_datetime = getattr(q, "create_date")
-    create_datetime = create_datetime.strftime("%Y-%m-%d %H:%M:%S")
-    dfdata["CreateDateTime"] = create_datetime
-    # dfdata["path_image"] = getattr(q, "path_image")
-    dfdata["Status"] = getattr(q, "status")
-    return dfdata
+def parse_boneage_query(q=None):
+    cols = ["ID", "Action", "PatientID", "Gender", "Age", "StudyDateTime", "CreateDateTime", "Status"]
+    
+    if q is None:
+        return cols
+    else:
+        dfdata = {}
+        dfdata[cols[0]] = getattr(q, "id")
+        dfdata[cols[1]] = ""
+        dfdata[cols[2]] = getattr(q, "pid")
+        dfdata[cols[3]] = getattr(q, "gender")
+        dfdata[cols[4]] = getattr(q, "age")
+        study_datetime = getattr(q, "study_datetime")
+        study_datetime = study_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        dfdata[cols[5]] = study_datetime
+        create_datetime = getattr(q, "create_date")
+        create_datetime = create_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        dfdata[cols[6]] = create_datetime
+        dfdata[cols[7]] = getattr(q, "status")
+        return dfdata
 
 
 @bp_viewer.route("/")
@@ -44,7 +48,7 @@ def ba():
 
     data = [parse_boneage_query(q) for q in qs]
 
-    dcols = list(data[0].keys())
+    dcols = parse_boneage_query()
 
     ref_images = {}
     ref_images["F"] = [

@@ -46,7 +46,7 @@
             </tfoot>
             <tbody>
               {% for row in data %}
-              <tr class="query-row" data-id="{{ row['ID'] }}">
+              <tr>
                 {% for k, v in row.items() %}
                 <td>{{ v }}</td>
                 {% endfor %}
@@ -110,9 +110,10 @@
           dom: "lrtip", // l - length changing input control, f - filtering input, r - processing display element, t - table, i - information summary, p - pagination control
           lengthMenu: [1, 3, 5, 10], // Define options for rows per page
           pageLength: 5,
+          autoWidth: false,
           columns: [
-            { data: 'ID', visible: false }, // ID column (not visible)
-            { data: 'Action', orderable: false, searchable: false },
+            { data: "ID", visible: false }, // ID column (not visible)
+            { data: "Action", orderable: false, searchable: false },
             { data: "PatientID" },
             { data: "Gender" },
             { data: "Age" },
@@ -121,6 +122,10 @@
             { data: "Status" }, // Orderable and searchable by default
           ],
           createdRow: function (row, data, dataIndex) {
+            // Add class and id to tr
+            $(row).addClass("query-row");
+            $(row).data("id", data.ID);
+
             // Add buttons to the 'Action' and 'Status' columns
             $("td:eq(0)", row).html(
               `<button class="delete-btn" data-id="${data.ID}">Delete</button>`
@@ -136,8 +141,8 @@
           var title = $(this).text();
           if (title == "Action") {
             $(this).html(
-              '<button id="delete-all-btn" class="btn btn-danger">Delete All</button>' 
-              + '<button id="reload-data-btn" class="btn btn-primary">Reload</button>'
+              '<button id="delete-all-btn" class="btn btn-danger">Delete All</button>' +
+                '<button id="reload-data-btn" class="btn btn-primary">Reload</button>'
             );
           } else {
             $(this).html(
@@ -199,6 +204,7 @@
                   );
                   table.clear().draw();
                   console.log(response.message);
+                  clearContents();
                 }
               },
               error: function (error) {
@@ -218,7 +224,9 @@
               if (response.error) {
                 alert(response.error);
               } else {
-                table.clear().rows.add(response.data).draw();
+                table.clear().rows.add(response.data).draw(false);
+                console.log("reloaded");
+                clearContents();
               }
             },
             error: function (error) {
@@ -272,25 +280,18 @@
               if (response.error) {
                 alert(response.error);
               } else {
-                // Update the HTML content in the DataTable
-                var cellIndex = table.cell(button.closest("td")).index(); // Get the index of the cell containing the button
-                var cellData = table
-                  .cell(cellIndex.row, cellIndex.column)
-                  .data(); // Get current cell data
+                // Get cell
+                var cellThis = table.cell(button.closest("td"));
+                var dataID = cellThis.nodes().to$().find("button").data("id");
 
-                console.log(cellData);
-
-                //$("td:eq(6)", row).html(
-                //`<button class="status-btn" data-id="${data.ID}">${data.Status}</button>`)
-
-                //var $cellContent = $("<div>").html(cellData); // Wrap cellData in a div to ensure proper manipulation
-                //$cellContent.find("button").text(response.new_status); // Update the button text in the cloned data
-
-                // Set the updated cell data back to the DataTable
-                {# table
-                  .cell(cellIndex.row, cellIndex.column)
-                  .data(response.new_status)
-                  .draw(false); #}
+                cellThis.data(response.new_status);
+                cellThis
+                  .nodes()
+                  .to$()
+                  .html(
+                    `<button class="status-btn" data-id="${dataID}">${response.new_status}</button>`
+                  );
+                cellThis.draw(false);
               }
             },
             error: function (error) {
