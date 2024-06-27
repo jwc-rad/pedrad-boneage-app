@@ -35,7 +35,7 @@ def predict():
         
         ximage = np.expand_dims(ds.pixel_array, axis=0)
         ximage = _tfm(ximage).unsqueeze(0).numpy()
-        xtable = np.array([[gender]])
+        xtable = np.array([[gender]]).astype('int64')
 
         try:
             ty = get_prediction(ximage, xtable)
