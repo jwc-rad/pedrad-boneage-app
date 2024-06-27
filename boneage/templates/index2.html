@@ -117,7 +117,7 @@
         let thisRefIndex = -1;
 
         // DataTable
-        var table = $("#menuTable").DataTable({
+        https: var table = $("#menuTable").DataTable({
           paging: true,
           info: false,
           dom: "lrtip", // l - length changing input control, f - filtering input, r - processing display element, t - table, i - information summary, p - pagination control
@@ -186,7 +186,11 @@
                 if (response.error) {
                   alert(response.error);
                 } else {
-                  alert("Records deleted successfully ... " + response.num_records + " records present.");
+                  alert(
+                    "Records deleted successfully ... " +
+                      response.num_records +
+                      " records present."
+                  );
                   table.clear().draw();
                   console.log(response.message);
                 }
@@ -317,6 +321,23 @@
           $("#query-image").attr("src", imagePath);
         }
 
+        function copyToClipboard(copyVal) {
+          try {
+            //$('body').attr('onselectstart', '');
+            var aux = document.createElement("input");
+            aux.setAttribute("value", copyVal);
+            document.body.appendChild(aux);
+            aux.select();
+            aux.setSelectionRange(0, 9999);
+            document.execCommand("copy");
+            document.body.removeChild(aux);
+            // alert("클립보드에 복사되었습니다");
+            //$('body').attr('onselectstart', 'return false');
+          } catch (err) {
+            console.log("클립보드 복사가 지원되지 않는 브라우저입니다.");
+          }
+        }
+
         function updateAsideText(data) {
           var bestIndex = data["best_pred"];
           var allPreds = data["predictions"];
@@ -326,21 +347,11 @@
             "\nChronological age : " +
             chronologicAgeMonths.toFixed() +
             " Months.";
+          var displayText = textToCopy;
+          displayText += "\n(" + parseFloat((100 * thisPred).toFixed(2)) + "%)";
 
-          // Copy text to clipboard
-          navigator.clipboard.writeText(textToCopy).then(
-            function () {
-              // Update the text container
-              var displayText = textToCopy;
-              displayText +=
-                "\n(" + parseFloat((100 * thisPred).toFixed(2)) + "%)";
-              $("#label-text-to-copy").text(displayText);
-            },
-            function (err) {
-              alert("Could not copy text");
-              console.error("Could not copy text: ", err);
-            }
-          );
+          copyToClipboard(textToCopy);
+          $("#label-text-to-copy").text(displayText);
         }
 
         function updateReference(ind) {
@@ -367,8 +378,8 @@
                 thisRefIndex = data["best_pred"];
                 updateChart(data);
                 updateImage(data);
-                updateAsideText(data);
                 updateReference(thisRefIndex);
+                updateAsideText(data);
               }
             },
             error: function (error) {
@@ -386,21 +397,13 @@
             chronologicAgeMonths.toFixed() +
             " Months.";
           var pointValue = data.points[0].x;
+          var displayText = textToCopy;
+          displayText +=
+            "\n(" + parseFloat((100 * pointValue).toFixed(2)) + "%)";
 
           // Copy text to clipboard
-          navigator.clipboard.writeText(textToCopy).then(
-            function () {
-              // Update the text container
-              var displayText = textToCopy;
-              displayText +=
-                "\n(" + parseFloat((100 * pointValue).toFixed(2)) + "%)";
-              $("#label-text-to-copy").text(displayText);
-            },
-            function (err) {
-              alert("Could not copy text");
-              console.error("Could not copy text: ", err);
-            }
-          );
+          copyToClipboard(textToCopy);
+          $("#label-text-to-copy").text(displayText);
 
           // Display ref image
           updateReference(pointIndex);
