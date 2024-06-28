@@ -27,6 +27,7 @@ onnxruntime = "*"
 monai = "*"
 plotly = "*"
 waitress = "*"
+setproctitle = "*"
 
 [dev-packages]
 
