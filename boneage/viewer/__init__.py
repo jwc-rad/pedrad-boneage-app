@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 
-from flask import Flask, Blueprint, jsonify, request, render_template
+from flask import Flask, Blueprint, jsonify, request, render_template, send_from_directory, abort
 
-from boneage import db, TEMPLATE_DIR, STATIC_DIR
+from boneage import db, TEMPLATE_DIR, STATIC_DIR, UPLOAD_DIR
 from boneage.models import BoneAge
 from boneage.utils.label import BoneAgeLabelText, get_boneage_labeltext
 
@@ -90,7 +90,7 @@ def parse_boneage_data(qi):
     idata["CreateDateTime"] = create_datetime
 
     path_image = getattr(qi, "path_image")
-    path_image = path_image.split(STATIC_DIR)[1].lstrip("/")
+    path_image = path_image.split(UPLOAD_DIR)[1].lstrip("/")
     idata["path_image"] = path_image
 
     bfem = idata["Gender"] == "F"
@@ -130,6 +130,9 @@ def get_data():
     idata = parse_boneage_data(qi)
     return jsonify(data=idata)
 
+@bp_viewer.route("/uploads/<filename>", methods=["GET"])
+def get_uploaded_filepath(filename):
+    return send_from_directory(UPLOAD_DIR, filename)
 
 @bp_viewer.route("/delete_record", methods=["POST"])
 def delete_record():

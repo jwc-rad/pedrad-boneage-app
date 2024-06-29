@@ -23,7 +23,9 @@
 
   <body>
     <div id="wrap">
-      {# <header></header> #}
+      {#
+      <header></header>
+      #}
       <div id="container">
         <nav>
           <table id="menuTable" class="display">
@@ -289,6 +291,8 @@
                     `<button class="status-btn" data-id="${dataID}">${response.new_status}</button>`
                   );
                 cellThis.draw(false);
+
+                clearContents();
               }
             },
             error: function (error) {
@@ -339,7 +343,7 @@
         function updateImage(data) {
           var fileName = data["path_image"];
           var imagePath =
-            "{{ url_for('static', filename='DUMMYFILENAME') }}".replace(
+            "{{ url_for('viewer.get_uploaded_filepath', filename='DUMMYFILENAME') }}".replace(
               "DUMMYFILENAME",
               fileName
             );

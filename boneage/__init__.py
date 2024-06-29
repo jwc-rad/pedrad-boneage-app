@@ -11,10 +11,10 @@ import config
 db = SQLAlchemy()
 migrate = Migrate()
 
-STATIC_DIR = str(Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")).as_posix())
-TEMPLATE_DIR = str(Path(os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")).as_posix())
-
-UPLOAD_DIR = str(Path(os.path.join(STATIC_DIR, "uploads")).as_posix())
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = str(Path(os.path.join(PROJECT_DIR, "static")).as_posix())
+TEMPLATE_DIR = str(Path(os.path.join(PROJECT_DIR, "templates")).as_posix())
+UPLOAD_DIR = str(Path(os.path.join(PROJECT_DIR, "uploads")).as_posix())
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
@@ -33,8 +33,10 @@ def create_app():
 
     # Blueprints
     from .api import bp_api
+
     app.register_blueprint(bp_api)
     from .viewer import bp_viewer
+
     app.register_blueprint(bp_viewer)
 
     return app
