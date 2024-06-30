@@ -352,16 +352,13 @@
 
         function copyToClipboard(copyVal) {
           try {
-            //$('body').attr('onselectstart', '');
             var aux = document.createElement("textarea");
-            aux.setAttribute("value", copyVal);
+            aux.value = copyVal;
             document.body.appendChild(aux);
             aux.select();
-            aux.setSelectionRange(0, 9999);
             document.execCommand("copy");
             document.body.removeChild(aux);
-            // alert("클립보드에 복사되었습니다");
-            //$('body').attr('onselectstart', 'return false');
+            console.log("Text copied to clipboard");
           } catch (err) {
             console.log("Browser does not support clipboard copying.");
           }
