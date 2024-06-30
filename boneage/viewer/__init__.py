@@ -61,7 +61,7 @@ def viewer():
         for x in sorted(glob.glob(os.path.join(STATIC_DIR, f"images/{'hand_he' if USE_HAND_REF_HE else 'hand'}/M", "*.png")))
     ]
 
-    return render_template("index2.html", data=data, dcols=dcols, ref_images=ref_images)
+    return render_template("index.html", data=data, dcols=dcols, ref_images=ref_images)
 
 
 @bp_viewer.route("/reload_data", methods=["GET"])
